@@ -1,8 +1,8 @@
 #!/bin/sh
 if [ $# -lt 1 ] || [ $# -gt 2 ]; then
 echo "Usage: $0 num_port -r";
-echo "num_port : port de la VM a démarrer";
-echo "option -r : redémarrage de la VM à partir de son image d'origine";
+echo "(required) num_port : port de la VM à démarrer";
+echo "(option) -r : redémarrage de la VM à partir de son image d'origine";
 exit
 else
 if [ $# -eq 2 ]; then 
@@ -31,8 +31,13 @@ create_tap () {
 	ip link set up dev t_$1
 }
 
-#tp_number=1
+delete_tap () {
+	ip link set down dev t_$1
+	ip link delete dev t_$1
+}
+
 tp_number=$(((Wanted_port-$WEBSOCKET_PORT-1)/4+1))
+br_interface="Info0305-$tp_number"
 i=$((Wanted_port-$WEBSOCKET_PORT))
 j=$((Wanted_port-$WEBSOCKET_PORT))
 #net=1
@@ -53,18 +58,17 @@ RESULT=`echo $(((i-1)%4 )) |bc`;
 
 proc=`ps -ef | grep qemu |grep $Wanted_port | grep -v grep | awk '{print $2}'`
 i=$(((tp_number-1)*6+1))
-echo "proc:$proc"
-echo "nb_tp:$tp_number"
-echo "i:$((i+RESULT))"
-echo "j:$j"
-echo "result:$RESULT"
-
+#echo "proc:$proc"
+#echo "nb_tp:$tp_number"
+#echo "i:$((i+RESULT))"
+#echo "j:$j"
+#echo "result:$RESULT"
 
 if [ $proc ]; then
+echo "Stop VM on port $Wanted_port"
 kill $proc
+sleep 3
 fi
-
-
 
 case $RESULT in
 	0)
@@ -73,6 +77,9 @@ echo "Starting $NAME"
 if [ $reboot ]; then
 qemu-img create -b $PASS/$IMAGE1 -f qcow2 $IMG1
 fi
+delete_tap $NAME
+create_tap $NAME
+#ovs-vsctl add-port ${br_interface} t_$NAME tag=2
 qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG1 -hda $IMG1 -device e1000,netdev=mynet$((i)),mac=${MAC}$(printf %02x $i) -monitor none -netdev tap,ifname=t_$NAME,id=mynet$i,script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -smp 2 -daemonize
 		;;
 	1)
@@ -81,6 +88,12 @@ echo "Starting $NAME"
 if [ $reboot ]; then
 qemu-img create -b $PASS/$IMAGE2 -f qcow2 $IMG2
 fi
+delete_tap ${NAME}_1
+delete_tap ${NAME}_2
+create_tap ${NAME}_1
+#ovs-vsctl add-port ${br_interface} t_${NAME}_1 tag=2
+create_tap ${NAME}_2
+#ovs-vsctl add-port ${br_interface} t_${NAME}_2 tag=3
 qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG2 -hda $IMG2 -device e1000,netdev=mynet$((i)),mac=${MAC}$(printf %02x $i) -monitor none -netdev tap,ifname=t_${NAME}_1,id=mynet$((i)),script=no -device e1000,netdev=mynet$((i+1)),mac=${MAC}$(printf %02x $((i+1))) -netdev tap,ifname=t_${NAME}_2,id=mynet$((i+1)),script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -daemonize
 		;;
 	2)
@@ -89,6 +102,12 @@ echo "Starting $NAME"
 if [ $reboot ]; then
 qemu-img create -b $PASS/$IMAGE3 -f qcow2 $IMG3
 fi
+delete_tap ${NAME}_1
+delete_tap ${NAME}_2
+create_tap ${NAME}_1
+#ovs-vsctl add-port ${br_interface} t_${NAME}_1 tag=3
+create_tap ${NAME}_2
+#ovs-vsctl add-port ${br_interface} t_${NAME}_2 tag=4
 qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG3 -hda $IMG3 -device e1000,netdev=mynet$((i)),mac=${MAC}$(printf %02x $i) -monitor none -netdev tap,ifname=t_${NAME}_1,id=mynet$((i)),script=no -device e1000,netdev=mynet$((i+1)),mac=${MAC}$(printf %02x $((i+1))) -netdev tap,ifname=t_${NAME}_2,id=mynet$((i+1)),script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -daemonize
 		;;
 	3)
@@ -97,6 +116,9 @@ echo "Starting $NAME"
 if [ $reboot ]; then
 qemu-img create -b $PASS/$IMAGE4 -f qcow2 $IMG4
 fi
+delete_tap $NAME
+create_tap $NAME
+#ovs-vsctl add-port ${br_interface} t_$NAME tag=4
 qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG4 -hda $IMG4 -device e1000,netdev=mynet$((i)),mac=${MAC}$(printf %02x $((i))) -monitor none -netdev tap,ifname=t_$NAME,id=mynet$i,script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -smp 2 -daemonize
 		;;
 	*)	echo "fin"
