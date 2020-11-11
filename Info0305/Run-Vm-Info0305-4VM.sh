@@ -55,10 +55,9 @@ IMG2=$PASS/img-rel/debian10-20190905-Info0305-rel-$tp_number-2.img
 IMG3=$PASS/img-rel/debian10-20190905-Info0305-rel-$tp_number-3.img
 IMG4=$PASS/img-rel/Linux-Lite-Info0305-rel-$tp_number-4.img
 
-qemu-img create -b $PASS/$IMAGE1 -f qcow2 $IMG1
-qemu-img create -b $PASS/$IMAGE2 -f qcow2 $IMG2
-qemu-img create -b $PASS/$IMAGE3 -f qcow2 $IMG3
-qemu-img create -b $PASS/$IMAGE4 -f qcow2 $IMG4
+#qemu-img create -b $PASS/$IMAGE1 -f qcow2 $IMG1
+#qemu-img create -b $PASS/$IMAGE2 -f qcow2 $IMG2
+#qemu-img create -b $PASS/$IMAGE3 -f qcow2 $IMG3
 #qemu-img create -b $PASS/$IMAGE4 -f qcow2 $IMG4
 
 NAME="35-$tp_number-PC1"

@@ -58,11 +58,12 @@ RESULT=`echo $(((i-1)%4 )) |bc`;
 
 proc=`ps -ef | grep qemu |grep $Wanted_port | grep -v grep | awk '{print $2}'`
 i=$(((tp_number-1)*6+1))
+mynet_num=$((i+RESULT))
 #echo "proc:$proc"
 #echo "nb_tp:$tp_number"
-#echo "i:$((i+RESULT))"
+#echo "mynet num : $mynet_num"
 #echo "j:$j"
-#echo "result:$RESULT"
+#echo "PC num ? result:$RESULT"
 
 if [ $proc ]; then
 echo "Stop VM on port $Wanted_port"
@@ -80,7 +81,7 @@ fi
 delete_tap $NAME
 create_tap $NAME
 #ovs-vsctl add-port ${br_interface} t_$NAME tag=2
-qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG1 -hda $IMG1 -device e1000,netdev=mynet$((i)),mac=${MAC}$(printf %02x $i) -monitor none -netdev tap,ifname=t_$NAME,id=mynet$i,script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -smp 2 -daemonize
+qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG1 -hda $IMG1 -device e1000,netdev=mynet$mynet_num,mac=${MAC}$(printf %02x $mynet_num) -monitor none -netdev tap,ifname=t_$NAME,id=mynet$i,script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -smp 2 -daemonize
 		;;
 	1)
 NAME="35-$tp_number-PC2"
@@ -94,7 +95,7 @@ create_tap ${NAME}_1
 #ovs-vsctl add-port ${br_interface} t_${NAME}_1 tag=2
 create_tap ${NAME}_2
 #ovs-vsctl add-port ${br_interface} t_${NAME}_2 tag=3
-qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG2 -hda $IMG2 -device e1000,netdev=mynet$((i)),mac=${MAC}$(printf %02x $i) -monitor none -netdev tap,ifname=t_${NAME}_1,id=mynet$((i)),script=no -device e1000,netdev=mynet$((i+1)),mac=${MAC}$(printf %02x $((i+1))) -netdev tap,ifname=t_${NAME}_2,id=mynet$((i+1)),script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -daemonize
+qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG2 -hda $IMG2 -device e1000,netdev=mynet$((mynet_num)),mac=${MAC}$(printf %02x $mynet_num) -monitor none -netdev tap,ifname=t_${NAME}_1,id=mynet$((mynet_num)),script=no -device e1000,netdev=mynet$((mynet_num+1)),mac=${MAC}$(printf %02x $((mynet_num+1))) -netdev tap,ifname=t_${NAME}_2,id=mynet$((mynet_num+1)),script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -daemonize
 		;;
 	2)
 NAME="35-$tp_number-PC3"
@@ -108,7 +109,7 @@ create_tap ${NAME}_1
 #ovs-vsctl add-port ${br_interface} t_${NAME}_1 tag=3
 create_tap ${NAME}_2
 #ovs-vsctl add-port ${br_interface} t_${NAME}_2 tag=4
-qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG3 -hda $IMG3 -device e1000,netdev=mynet$((i)),mac=${MAC}$(printf %02x $i) -monitor none -netdev tap,ifname=t_${NAME}_1,id=mynet$((i)),script=no -device e1000,netdev=mynet$((i+1)),mac=${MAC}$(printf %02x $((i+1))) -netdev tap,ifname=t_${NAME}_2,id=mynet$((i+1)),script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -daemonize
+qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG3 -hda $IMG3 -device e1000,netdev=mynet$((mynet_num+1)),mac=${MAC}$(printf %02x $((mynet_num+1))) -monitor none -netdev tap,ifname=t_${NAME}_1,id=mynet$((mynet_num+1)),script=no -device e1000,netdev=mynet$((mynet_num+2)),mac=${MAC}$(printf %02x $((mynet_num+2))) -netdev tap,ifname=t_${NAME}_2,id=mynet$((mynet_num+2)),script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -daemonize
 		;;
 	3)
 NAME="35-$tp_number-PC4"
@@ -119,7 +120,7 @@ fi
 delete_tap $NAME
 create_tap $NAME
 #ovs-vsctl add-port ${br_interface} t_$NAME tag=4
-qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG4 -hda $IMG4 -device e1000,netdev=mynet$((i)),mac=${MAC}$(printf %02x $((i))) -monitor none -netdev tap,ifname=t_$NAME,id=mynet$i,script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -smp 2 -daemonize
+qemu-system-x86_64 -enable-kvm -machine accel=kvm:tcg -cpu max -m $MEM_IMG4 -hda $IMG4 -device e1000,netdev=mynet$((mynet_num+2)),mac=${MAC}$(printf %02x $((mynet_num+2))) -monitor none -netdev tap,ifname=t_$NAME,id=mynet$((mynet_num+2)),script=no -vnc 0.0.0.0:$((VNC_PORT+$j-5900)),websocket=$((WEBSOCKET_PORT+$j)) -name Info$NAME -vga qxl -usb -device usb-tablet -k fr -smp 2 -daemonize
 		;;
 	*)	echo "fin"
 		;;
