@@ -1,1 +1,6 @@
 Info0305/Run-Vm-Info0305-4VM.sh.txt
+vIOS/tmp/*
+vIOS/*.log
+vIOS/*.img
+vIOS/*.qcow*
+vIOS/ios_config*
