@@ -5,3 +5,4 @@ vIOS/*.img
 vIOS/*.qcow*
 vIOS/ios_config*
 vIOS/*.txt
+vIOS/images/vIOS/*
